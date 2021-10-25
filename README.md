@@ -11,7 +11,7 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
   
   We deploy a local correference resolution method by the title. Details in **extract_triples_minie.py and extract_triples_stanford.py**
 
-## triple extractor
+## Triple extractor
 
 ## retriever
 
@@ -19,4 +19,4 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
 ## dataset:
 1. hotpotQA.
 2. Wikihop.
-   As this dataset is 
+   As this dataset is only contain the input NL query and grounded answer to the query. We generate the grounded documents by ourselves. According to its paper, they provided a set of support documents, which contain the exact clue to fetch the answer. We generate the hop 1 grounded document by the subject entity in the question.
