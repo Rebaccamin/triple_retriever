@@ -1,0 +1,4 @@
+neuralcoref
+multiprocessing
+itertools
+unicodedata
