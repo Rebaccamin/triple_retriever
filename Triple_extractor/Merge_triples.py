@@ -114,9 +114,10 @@ class Merge():
             for j in range(i + 1, len(triples)):
                 words_1 = nltk.word_tokenize(' '.join(triples[i]))
                 words_2 = nltk.word_tokenize(' '.join(triples[j]))
-                if set(words_1)==(set(words_2)):
+                if set(words_1).issubset(set(words_2)):
                     removed.append(triples[j])
-
+                elif set(words_2).issubset(set(words_1)):
+                    removed.append(triples[j])
         return list(set(triples) - set(removed))
 
     def lists_2_list(self,lists):
