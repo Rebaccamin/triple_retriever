@@ -1,6 +1,6 @@
 # Triple_retriever
 
-This respository contains the complete code for our paper "Triple-Fact Retriever: An explainable reasoning retrieval model for multi-hop QA problem.".
+This repository contains the codes for our paper "Triple-Fact Retriever: An explainable reasoning retrieval model for multi-hop QA problem.".
 
 ## Pre-process. 
   
