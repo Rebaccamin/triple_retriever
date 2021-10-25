@@ -185,6 +185,7 @@ def main():
     args=parser.parse_args()
     runner=Merge()
     runner.process_triples(args.file)
+    runner.merge_triples(args.file)
 
 
 
