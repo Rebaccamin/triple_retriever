@@ -5,6 +5,7 @@ import pickle
 from tqdm import tqdm
 import argparse
 import string
+import os
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
                         datefmt='%m/%d/%Y %H:%M:%S',
@@ -115,6 +116,7 @@ class Merge():
                 words_2 = nltk.word_tokenize(' '.join(triples[j]))
                 if set(words_1)==(set(words_2)):
                     removed.append(triples[j])
+
         return list(set(triples) - set(removed))
 
     def lists_2_list(self,lists):
@@ -124,68 +126,81 @@ class Merge():
                 triples.extend(t)
         return triples
 
-    def process_triples(self,filename):
+    def process_triples(self,dir,outdir):
         '''
         convert the lists of triples to a list of triple.
         :param filename:
         :return:
         '''
-        data=self.read(filename)
-        newdata=[]
+        filenames=[]
+        for dirname,_,files in os.walk(dir):
+            for f in files:
+                filenames.append(os.path.join(dirname,f))
+        if os.path.exists(outdir)!=True:
+            os.mkdir(outdir)
+        for filename in filenames:
+            data=self.read(filename)
+            newdata=[]
 
-        for qa in tqdm(data):
-            supports=qa['supports']
-            newqa=qa
-            newsupports=[]
-            for instance  in supports:
-                minie_t=instance['minie_t']
-                minie_t=self.lists_2_list(minie_t)
-                newinstance=instance
-                newinstance['minie_t']=minie_t
-                stanford_t=instance['stanford_t']
-                stanford_t=self.lists_2_list(stanford_t)
-                newinstance['stanford_t']=stanford_t
-                newsupports.append(newinstance)
-            newqa['supports']=newsupports
-            newdata.append(newqa)
+            for qa in tqdm(data):
+                supports=qa['supports']
+                newqa=qa
+                newsupports=[]
+                for instance  in supports:
+                    minie_t=instance['minie_t']
+                    minie_t=self.lists_2_list(minie_t)
+                    newinstance=instance
+                    newinstance['minie_t']=minie_t
+                    stanford_t=instance['stanford_t']
+                    stanford_t=self.lists_2_list(stanford_t)
+                    newinstance['stanford_t']=stanford_t
+                    newsupports.append(newinstance)
+                newqa['supports']=newsupports
+                newdata.append(newqa)
 
-        with open(filename,'w')as f:
-            json.dump(newdata,f,indent=4)
+            filename=filename.replace(dir,outdir)
+            with open(filename,'w')as f:
+                json.dump(newdata,f,indent=4)
+        return
 
-    def merge_triples(self,filename):
-        data=self.read(filename)
-        newdata=[]
-        for qa in data:
-            supports=qa['supports']
-            newsupports=[]
-            for instance in tqdm(supports):
-                t0=instance['minie_t']
-                t1=instance['stanford_t']
-                t= (t0+t1)
-                # if hotpotQA, correference by its title
-                # title=instance    supports is a dict.
-                # t0 =supports[instance]['minie_t']
-                # t1 =supports[instance]['stanford_t']
-                # t =self.cor_resolu_triple(t,title)
-                t = self.de_redundancy_triple(t)
-                newinstance=instance
-                newinstance['merge_t']=t
-                newsupports.append(newinstance)
-            newqa=qa
-            newqa['supports']=newsupports
-            newdata.append(newqa)
-        with open(filename,'w')as f:
-            json.dump(newdata,f,indent=4)
-
-
+    def merge_triples(self,dir):
+        filenames = []
+        for dirname, _, files in os.walk(dir):
+            for f in files:
+                filenames.append(os.path.join(dirname, f))
+        for filename in filenames:
+            data=self.read(filename)
+            newdata=[]
+            for qa in data:
+                supports=qa['supports']
+                newsupports=[]
+                for instance in tqdm(supports):
+                    t0=instance['minie_t']
+                    t1=instance['stanford_t']
+                    t= (t0+t1)
+                    # if hotpotQA, correference by its title
+                    # title=instance    supports is a dict.
+                    # t0 =supports[instance]['minie_t']
+                    # t1 =supports[instance]['stanford_t']
+                    # t =self.cor_resolu_triple(t,title)
+                    t = self.de_redundancy_triple(t)
+                    newinstance=instance
+                    newinstance['merge_t']=t
+                    newsupports.append(newinstance)
+                newqa=qa
+                newqa['supports'] = newsupports
+                newdata.append(newqa)
+            with open(filename,'w')as f:
+                json.dump(newdata,f,indent=4)
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--file',type=str)
+    parser.add_argument('--dir',type=str)
+    parser.add_argument('--outdir',type=str)
     args=parser.parse_args()
     runner=Merge()
-    runner.process_triples(args.file)
-    runner.merge_triples(args.file)
+    runner.process_triples(args.dir,args.outdir)
+    runner.merge_triples(args.outdir)
 
 
 
