@@ -11,11 +11,27 @@ import itertools
 from multiprocessing import Pool
 import unicodedata
 
+
+
 class Preprocess():
     def __init__(self,dir):
         self.dir=dir
         self.nlp = spacy.load('en')
         neuralcoref.add_to_pipe(self.nlp)
+
+    def remove_brackets(self,sen):
+        '''
+        remove the brackets in the sentences.
+        :param sen:
+        :return:
+        '''
+        if '(' in sen and ')' in sen:
+            a = sen.index('(')
+            b = sen.index(')')
+            neiron = sen[a:b + 1]
+            newsen = sen.replace(neiron, '')
+            return newsen, 1
+        return sen, 0
 
     def finderror(self, files, start):
         for idx, file in enumerate(files):
@@ -89,8 +105,6 @@ class Preprocess():
 
         return None
 
-
-
     def coref_text(self, filenames, output, ground=None, extract=False):
         #filenames = self.getExist()
 
@@ -155,6 +169,7 @@ class Preprocess():
             newsen= ' '.join(word.strip(string.punctuation) for word in sen.split())
             newsen = newsen.replace('\'s','')
             newsen = self.preprocess_sen_4(newsen)
+            newsen = self.remove_brackets(newsen)
             newsens.append(newsen)
         t = []
         for sen in newsens:
@@ -349,8 +364,10 @@ class Preprocess():
 
     def minie_extract_sen(self,sentence,para_title):
         sentence = self.preprocess_sen(sentence)# wenju dao chenshuju
-        t0,sentence = self.generate_born_triple(sentence,para_title)# process the () and remove it. as the () can influence the extraction results.
-
+        if para_title!=None:
+            t0,sentence = self.generate_born_triple(sentence,para_title)# process the () and remove it. as the () can influence the extraction results.
+        else:
+            t0=[]
 
         sentence1 = self.preprocess_sen_4(sentence)
         try:
@@ -472,7 +489,7 @@ def main():
     this is to process the eval data.
     extract triples from the text.
 
-    for each para is a list of sentence. and i donot use correference resolution. instead, i detect the daici(he,she..) and replace such words by the para title.
+    for each para is a list of sentence. and i donot use correference resolution. instead, i detect the pronoun words(he,she..) and replace such words by the para title.
     :return:
     '''
     dev_file='hotpot_dev_fullwiki_v1.json'
@@ -522,11 +539,6 @@ def main():
         json.dump(new_dev_data,f,indent=4)
 
 
-
-
-
-
-
 def main1():
     parser = argparse.ArgumentParser()
     parser.add_argument('--file',type=str)
@@ -543,5 +555,44 @@ def main1():
     else:
         a.parallel_process(dirname=args.inputdir, output='hotpotqa_minie_stanford', groundfile='supf_id.json',extract=False)
 
+
+def main2():
+    '''process wikihop'''
+    a=Preprocess(dir='')
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--file',type=str)
+    parser.add_argument('--start',type=int)
+    parser.add_argument('--end',type=int)
+    parser.add_argument('--output',type=str)
+    args=parser.parse_args()
+
+    file=args.file
+    if os.path.exists(file) and '.json' in file:
+        data=a.read(file)
+        newdata=[]
+        start=args.start
+        end=min(args.end,len(data))
+        for qa in tqdm(data[start:end]):
+            newqa=qa
+            context=qa['supports']
+            newcontext=[]
+            for text in context:
+                cfr=a.correference_resolution_doc(text)
+                newcontext.append({"text": text, "cor_text": cfr})
+                #triples=a.minie_extract_para_ground(cfr,None)
+                #newcontext.append({"text":text,"cor_text":cfr,"minie_t":triples})
+            newqa['supports']=newcontext
+            newdata.append(newqa)
+
+        #dump the triple along the text to the output file.
+        print('dump %d (src:%d) data to %s.'%(len(newdata),len(data),args.output))
+        with open(args.output,'w')as f:
+            json.dump(newdata,f,indent=4)
+
+    else:
+        print('no file exist!')
+
+
+
 if __name__ == '__main__':
-    main()
+    main2()

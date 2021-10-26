@@ -16,7 +16,19 @@ class Preprocess():
         self.dir=dir
         self.nlp = spacy.load('en')
 
-
+    def remove_brackets(self,sen):
+        '''
+        remove the brackets in the sentences.
+        :param sen:
+        :return:
+        '''
+        if '(' in sen and ')' in sen:
+            a = sen.index('(')
+            b = sen.index(')')
+            neiron = sen[a:b + 1]
+            newsen = sen.replace(neiron, '')
+            return newsen, 1
+        return sen, 0
 
     def stanford_extract_para_ground(self,document,title,port):
         sens = split2sen(document)
@@ -25,6 +37,7 @@ class Preprocess():
             newsen= ' '.join(word.strip(string.punctuation) for word in sen.split())
             newsen = newsen.replace('\'s','')
             newsen = self.preprocess_sen_4(newsen)
+            newsen = self.remove_brackets(newsen)
             newsens.append(newsen)
         t = []
         for sen in newsens:
