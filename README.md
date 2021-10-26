@@ -13,10 +13,17 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
 
 ## Triple extractor
 
-## retriever
+   Merge_triples.py: we use the union of two extracted triple set after Pre-process without depulicates.
+
+   triple_cluster.py: this code is the implementation of our Algorithm 1 in the paper.
+   
+   For the evaluation, we dump the documents and the corresponding triple sets to [Elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/7.15/install-elasticsearch.html), we apply the conventional token-based method to do the query-document search. 
+   Details in **es_build.py and evaluation.py**
+
+## Retriever
 
 
-## dataset:
+## Dataset:
 1. hotpotQA.
 2. Wikihop.
    As this dataset is only contain the input NL query and grounded answer to the query. We generate the grounded documents by ourselves. According to its paper, they provided a set of support documents, which contain the exact clue to fetch the answer. We generate the hop 1 grounded document by the subject entity in the question.
