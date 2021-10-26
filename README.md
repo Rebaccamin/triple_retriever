@@ -24,12 +24,12 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
    
    The retriever for the multi-hop question documents is an iteration work, for each hop, we deploy the single hop retriever to retrieve the topk documents. Given a NL question, a set of candidate documents (which is composed of the triple facts), **train_one_hop.py** is used to find the ground document by its maximum matched triple fact to the input query.
    
-   After each hop, we use **query_generator** to fuse the retrieved triple knowledge into the last-hop query to generate a new query for next hop retriever.
+   After each hop, we use **query_generator.py** to fuse the retrieved triple knowledge into the last-hop query to generate a new query for next hop retriever.
     
    Specifically, as the original dataset lacks of grounded supervison of intermediate query for the query generator training, we simulate [GoldEn](https://github.com/qipeng/golden-retriever) to generate the ground intermedidate query. 
 
 ## Dataset:
-1. [HotpotQA](https://hotpotqa.github.io/).
+1. [HotpotQA](https://hotpotqa.github.io/). It is a human-annotated large-scale multi-hop QA dataset.There are 90447 questions for training and 7405 questions for testing. We conduct our experiments on the *full wiki* setting for the open-domain scenario. 
 2. [Wikihop](https://qangaroo.cs.ucl.ac.uk/).
    As this dataset is only contain the input NL query and grounded answer to the query. We generate the grounded documents by ourselves. According to its [paper](https://transacl.org/ojs/index.php/tacl/article/viewFile/1325/299), they provided a set of support documents, which contain the exact clue to fetch the answer. We generate the hop grounded document by the subject entity in the question.
     
