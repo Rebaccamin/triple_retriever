@@ -24,7 +24,9 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
    
    The retriever for the multi-hop question documents is an iteration work, for each hop, we deploy the single hop retriever to retrieve the topk documents. Given a NL question, a set of candidate documents (which is composed of the triple facts), **train_one_hop.py** is used to find the ground document by its maximum matched triple fact to the input query.
    
-   '''bash run.sh'''
+   Train the model by:
+   
+   `bash run.sh`
    
    After each hop, we use **query_generator.py** to fuse the retrieved triple knowledge into the last-hop query to generate a new query for next hop retriever.
     
