@@ -15,13 +15,18 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
 
    Merge_triples.py: we use the union of two extracted triple set after Pre-process without depulicates.
 
-   triple_cluster.py: this code is the implementation of our Algorithm 1 in the paper.
+   triple_cluster.py: this code is the implementation of Algorithm 1 in the paper.
    
    For the evaluation, we dump the documents and the corresponding triple sets to [Elastic search](https://www.elastic.co/guide/en/elasticsearch/reference/7.15/install-elasticsearch.html), we apply the conventional token-based method to do the query-document search. 
    Details in **es_build.py and evaluation.py**.
 
 ## Retriever
-
+   
+   The retriever for the multi-hop question documents is an iteration work, for each hop, we deploy the single hop retriever to retrieve the topk documents. Given a NL question, a set of candidate documents (which is composed of the triple facts), **train_one_hop.py** is used to find the ground document by its maximum matched triple fact to the input query.
+   
+   After each hop, we use **query_generator** to fuse the retrieved triple knowledge into the last-hop query to generate a new query for next hop retriever.
+    
+   Specifically, for the original dataset lack of grounded intermediate query for the query generator training, we simulate [GoldEn](https://github.com/qipeng/golden-retriever) to generate the ground intermedidate query. 
 
 ## Dataset:
 1. [HotpotQA](https://hotpotqa.github.io/).
