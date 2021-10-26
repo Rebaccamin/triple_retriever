@@ -26,9 +26,12 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
    
    After each hop, we use **query_generator** to fuse the retrieved triple knowledge into the last-hop query to generate a new query for next hop retriever.
     
-   Specifically, for the original dataset lack of grounded intermediate query for the query generator training, we simulate [GoldEn](https://github.com/qipeng/golden-retriever) to generate the ground intermedidate query. 
+   Specifically, as the original dataset lacks of grounded supervison of intermediate query for the query generator training, we simulate [GoldEn](https://github.com/qipeng/golden-retriever) to generate the ground intermedidate query. 
 
 ## Dataset:
 1. [HotpotQA](https://hotpotqa.github.io/).
 2. [Wikihop](https://qangaroo.cs.ucl.ac.uk/).
-   As this dataset is only contain the input NL query and grounded answer to the query. We generate the grounded documents by ourselves. According to its paper, they provided a set of support documents, which contain the exact clue to fetch the answer. We generate the hop 1 grounded document by the subject entity in the question.
+   As this dataset is only contain the input NL query and grounded answer to the query. We generate the grounded documents by ourselves. According to its [paper](https://transacl.org/ojs/index.php/tacl/article/viewFile/1325/299), they provided a set of support documents, which contain the exact clue to fetch the answer. We generate the hop grounded document by the subject entity in the question.
+    
+  
+    
