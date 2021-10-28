@@ -102,7 +102,7 @@ class Merge():
                 alist = triples[i]
                 blist = triples[j]
 
-                if set(alist).issubset(set(blist)) :
+                if set(alist).issubset(set(blist)):
                     remove.append(alist)
                 elif set(blist).issubset(set(alist)):
                     remove.append(blist)
@@ -112,13 +112,23 @@ class Merge():
         removed = []
         for i in range(len(triples)):
             for j in range(i + 1, len(triples)):
+                if triples[j] in removed:
+                    break
+
                 words_1 = nltk.word_tokenize(' '.join(triples[i]))
                 words_2 = nltk.word_tokenize(' '.join(triples[j]))
                 if set(words_1).issubset(set(words_2)):
-                    removed.append(triples[j])
+                    removed.append(triples[i])
+                    break
                 elif set(words_2).issubset(set(words_1)):
                     removed.append(triples[j])
-        return list(set(triples) - set(removed))
+        if len(removed)==0:
+            return triples
+
+        for tr in removed:
+            if tr in triples:
+                triples.remove(tr)
+        return triples
 
     def lists_2_list(self,lists):
         triples=[]
@@ -164,18 +174,21 @@ class Merge():
                 json.dump(newdata,f,indent=4)
         return
 
-    def merge_triples(self,dir):
+    def merge_triples(self,dir1,dir2):
         filenames = []
-        for dirname, _, files in os.walk(dir):
+        if os.path.exists(dir2)!=True:
+            os.mkdir(dir2)
+
+        for dirname, _, files in os.walk(dir1):
             for f in files:
                 filenames.append(os.path.join(dirname, f))
         for filename in filenames:
             data=self.read(filename)
             newdata=[]
-            for qa in data:
+            for qa in tqdm(data):
                 supports=qa['supports']
                 newsupports=[]
-                for instance in tqdm(supports):
+                for instance in (supports):
                     t0=instance['minie_t']
                     t1=instance['stanford_t']
                     t= (t0+t1)
@@ -191,8 +204,123 @@ class Merge():
                 newqa=qa
                 newqa['supports'] = newsupports
                 newdata.append(newqa)
+
+            filename=filename.replace(dir1,dir2)
             with open(filename,'w')as f:
                 json.dump(newdata,f,indent=4)
+
+    def assert_list_of_triples(self,tlist):
+        for i in tlist:
+            if type(i)==str:
+                continue
+            else:
+                return False
+        return True
+
+    def join_triples(self, tlist):
+        triples=[]
+        for num in range(int(len(tlist)/3)):
+            triples.append([tlist[num],tlist[num+1],tlist[num+2]])
+        return triples
+
+    def assert_list_exact_triples(self,tlist):
+        for i in tlist:
+            if type(i)==list and len(i)==3 and type(i[0])==str:
+                continue
+            else:
+                return False
+        return True
+
+    def assert_a_triple(self,item):
+        if type(item)==list and len(item)==3 and type(item[0])==str and type(item[1])==str and type(item[2])==str:
+            return True
+        return False
+
+    def assert_a_triple_list(self,item):
+        if type(item)==list:
+            for t in item:
+                if self.assert_a_triple(t)!=True:
+                    return False
+        else:
+            return False
+        return True
+
+
+    def process_noise_triples(self,tlist):
+        '''
+        the original processed triples may contain noise. removed that
+        :param tlist:
+        :return:
+        '''
+        newt=[]
+        for t in tlist:
+            if self.assert_a_triple(t):
+                newt.append(t)
+            elif self.assert_a_triple_list(t):
+                newt.extend(t)
+            else:
+                logging.info('error data:')
+                logging.info(t)
+        return newt
+
+
+    def generate_triples(self,dir,outdir):
+        '''
+        because the extracted triples have different data structure, after flatern the lists of list, the triples now become [s1, p1, o1, s2, p2,o2...]
+        :param dir:
+        :return:
+        '''
+
+        filenames=[]
+        for dirname,_,files in os.walk(dir):
+            for file in files:
+                filenames.append(os.path.join(dirname,file))
+        logging.info('start process %d files.'%len(filenames))
+
+        for file in filenames:
+            data=self.read(file)
+            newdata=[]
+            for instance in tqdm(data):
+                newins=instance
+                supports=instance['supports']
+                newsupports=[]
+                for s in supports:
+                    stanford_t0=s['stanford_t']
+                    if self.assert_list_of_triples(stanford_t0) and len(stanford_t0)%3==0:
+                        stanford_t=self.join_triples(stanford_t0)
+                        assert self.assert_list_exact_triples(stanford_t)
+                        stanford_t0=stanford_t
+                    else:
+                        stanford_t0=self.process_noise_triples(stanford_t0)
+                        assert self.assert_list_exact_triples(stanford_t0)
+
+                    minie_t=s['minie_t']
+                    if self.assert_list_of_triples(minie_t) and len(minie_t)%3==0:
+                        minie_t=self.join_triples(minie_t)
+                        assert self.assert_list_exact_triples(minie_t)
+                    else:
+                        minie_t=self.process_noise_triples(minie_t)
+                        assert self.assert_list_exact_triples(minie_t)
+
+
+                    mergedt= stanford_t0+minie_t
+                    mergedt=self.de_redundancy_triple(mergedt)
+                    assert self.assert_list_exact_triples(mergedt)
+                    news=s
+                    news['stanford_t']=stanford_t0
+                    news['minie_t']=minie_t
+                    news['merged_t']=mergedt
+                    newsupports.append(news)
+                newins['supports']=newsupports
+                newdata.append(newins)
+            assert len(data)==len(newdata)
+            with open(file.replace(dir, outdir),'w')as f:
+                json.dump(newdata,f, indent=4)
+        return
+
+
+
+
 
 def main():
     parser=argparse.ArgumentParser()
@@ -200,8 +328,8 @@ def main():
     parser.add_argument('--outdir',type=str)
     args=parser.parse_args()
     runner=Merge()
-    runner.process_triples(args.dir,args.outdir)
-    runner.merge_triples(args.outdir)
+    #runner.process_triples(args.dir,args.outdir)
+    runner.generate_triples(args.dir, args.outdir)
 
 
 
