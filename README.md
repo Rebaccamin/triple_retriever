@@ -43,5 +43,6 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
 
 ## reader model
 
-  We conduct the reader model[same to path retriever](https://github.com/AkariAsai/learning_to_retrieve_reasoning_paths/tree/master/reader) of over the extracted document path for HotPotQA dataset.
+  We conduct the reader model [same to path retriever](https://github.com/AkariAsai/learning_to_retrieve_reasoning_paths/tree/master/reader) of over the extracted document path for HotPotQA dataset.
+  The f1 score: 78.92
  
