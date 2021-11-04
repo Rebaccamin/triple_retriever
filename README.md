@@ -40,3 +40,8 @@ This repository contains the codes for our paper "Triple-Fact Retriever: An expl
     Specifically, based on the paper's introduction of the dataset construction, we generate the hop 1 grounded document by the entity linking tool. As the reasoning path to the query-answer, the start is the document which the subject entity in the query linked to, i.e., the intro page for the entity. The path tranversed based on the hyperlink structure in the wiki documents, and stop at the document which contains the answer entity. As there exists many documents which contains the answer entity, it is not possible to derive the ground supervision for hop i (i>1) retriever. Thus, we conduct our experiments on this [dataset](https://drive.google.com/drive/folders/1eDxVwc7BGPcYYXHSRyf2UuR2mUZm1OXz?usp=sharing).
   
     
+
+## reader model
+
+  We conduct the reader model[same to path retriever](https://github.com/AkariAsai/learning_to_retrieve_reasoning_paths/tree/master/reader) of over the extracted document path for HotPotQA dataset.
+ 
